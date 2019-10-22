@@ -1,18 +1,10 @@
 """Find Kmer in sequence"""
 import argparse
 import networkx as nx
-
-def get_starting_nodes():
-    pass
-
+import os
 
 def std():
     pass
-
-
-def get_sink_nodes():
-    pass
-
 
 def path_average_weight():
     pass
@@ -23,14 +15,6 @@ def remove_paths():
 
 
 def select_best_path():
-    pass
-
-
-def save_contigs():
-    pass
-
-
-def get_contigs():
     pass
 
 
@@ -88,6 +72,55 @@ def build_graph(kmer_dict):
     return graph
 
 
+def get_starting_nodes(graph):
+    """Prend un graphe et retourne une liste de noeuds d'entrés"""
+    entres = []
+    for node in graph.nodes:
+        if len(list(graph.predecessors(node)))==False:
+            entres.append(node)
+    return entres
+
+
+def get_sink_nodes(graph):
+    """Prend un graphe et retourne une liste de noeuds de sortis"""
+    sortis = []
+    for node in graph.nodes:
+        if len(list(graph.successors(node)))==False:
+            sortis.append(node)
+    return sortis
+
+
+def get_contigs(graph,entres,sortis):
+    """Retourne liste de tuple(contig, taille du contig)"""
+    all_paths = []
+    for node in entres:
+        for node2 in sortis:
+            path = list(nx.all_simple_paths(graph,node,node2))
+            if len(path) > 0:
+                all_paths.append(path)
+    tupple = []
+    for i in range(len(all_paths)):
+        for k in range(len(all_paths[i])):
+            contig = str(all_paths[i][k][0])
+            for j in range(1,len(all_paths[i][k])):
+                string = str(all_paths[i][k][j][-1])
+                contig += string[-1]
+            tupple.append([contig,len(contig)])
+    return tupple
+
+
+def fill(text, width=80):
+    """Split text with a line return to respect fasta format"""
+    return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
+
+
+def save_contigs(tupple,file_name):
+    """Sort un fichier avec la liste tupple"""
+    file = open("../data/"+file_name,'w+')
+    for i in range(len(tupple)):
+        file.write('>Contig numero ' + str(i) + ' len=' + str(tupple[i][1]) + '\n' + str(fill(tupple[i][0])) + '\n')
+
+
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Graphe de de Bruijn')
@@ -98,8 +131,10 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     #config_file = args.o
-    g = build_graph(build_kmer_dict(fastq_file, kmer_size))
-    print(g)
+    graph = build_graph(build_kmer_dict(fastq_file, kmer_size))
+    tupple = get_contigs(graph, get_starting_nodes(graph), get_sink_nodes(graph))
+    save_contigs(tupple,'eva71_hundred_reads.fq.out')
+    
 
 if __name__ == '__main__':
     main()

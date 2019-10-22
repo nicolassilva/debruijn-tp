@@ -1,5 +1,6 @@
 """Find Kmer in sequence"""
 import argparse
+import networkx as nx
 
 def get_starting_nodes():
     pass
@@ -48,9 +49,6 @@ def solve_entry_tips():
 def solve_out_tips():
     pass
 
-def buid_graph():
-    pass
-
 
 def read_fastq(fastq_file):
     """Read fastq and return list of sequence
@@ -65,7 +63,7 @@ def read_fastq(fastq_file):
 def cut_kmer(seq, kmer_size):
     """Return list of Kmer
     Takes in arguments a sequence and a Kmer size"""
-    for i in range(len(seq)-kmer_size):
+    for i in range(len(seq)-kmer_size+1):
         yield seq[i:i+kmer_size]
 
 
@@ -82,6 +80,14 @@ def build_kmer_dict(fastq_file, kmer_size):
     return kmer_dict
 
 
+def build_graph(kmer_dict):
+    """Build tree of kmer prefixes and suffixes"""
+    graph = nx.DiGraph()
+    for kmer,val in kmer_dict.items():
+        graph.add_edge(kmer[:-1],kmer[1:], weight=val)
+    return graph
+
+
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Graphe de de Bruijn')
@@ -92,8 +98,8 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     #config_file = args.o
-    kmer_dict = build_kmer_dict(fastq_file, kmer_size)
-    
+    g = build_graph(build_kmer_dict(fastq_file, kmer_size))
+    print(g)
 
 if __name__ == '__main__':
     main()

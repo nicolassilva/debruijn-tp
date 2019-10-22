@@ -1,13 +1,66 @@
+"""Find Kmer in sequence"""
 import argparse
+
+def get_starting_nodes():
+    pass
+
+
+def std():
+    pass
+
+
+def get_sink_nodes():
+    pass
+
+
+def path_average_weight():
+    pass
+
+
+def remove_paths():
+    pass
+
+
+def select_best_path():
+    pass
+
+
+def save_contigs():
+    pass
+
+
+def get_contigs():
+    pass
+
+
+def solve_bubble():
+    pass
+
+
+def simplify_bubbles():
+    pass
+
+
+def solve_entry_tips():
+    pass
+
+
+def solve_out_tips():
+    pass
+
+def buid_graph():
+    pass
+
 
 def read_fastq(fastq_file):
     """Read fastq and return list of sequence
     Takes in arguments a FATSQ file"""
     fq_file = open(fastq_file, 'r')
-    for line in fq_file:
-        yield next(fq_file)
+    for _ in fq_file:
+        yield next(fq_file).strip()
         next(fq_file)
         next(fq_file)
+
 
 def cut_kmer(seq, kmer_size):
     """Return list of Kmer
@@ -15,17 +68,19 @@ def cut_kmer(seq, kmer_size):
     for i in range(len(seq)-kmer_size):
         yield seq[i:i+kmer_size]
 
+
 def build_kmer_dict(fastq_file, kmer_size):
     """Return dictionnary of Kmer and occurency of the Kmer
     Takes in arguments a FATSQ file and a Kmer size"""
     kmer_dict = {}
     for i in read_fastq(fastq_file):
-        for kmer in cut_kmer(i,kmer_size):
+        for kmer in cut_kmer(i, kmer_size):
             if not kmer in kmer_dict:
                 kmer_dict[kmer] = 1
             else:
                 kmer_dict[kmer] += 1
-    return(kmer_dict)
+    return kmer_dict
+
 
 def main():
     """Main function"""
@@ -37,11 +92,8 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     #config_file = args.o
+    kmer_dict = build_kmer_dict(fastq_file, kmer_size)
     
-    test = build_kmer_dict(fastq_file,kmer_size)
-    print(test)      
-    
-    return()
 
 if __name__ == '__main__':
     main()

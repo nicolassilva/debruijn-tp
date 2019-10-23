@@ -3,6 +3,7 @@ import os
 import argparse
 import statistics as st
 import networkx as nx
+import random
 
 
 def read_fastq(fastq_file):
@@ -89,8 +90,8 @@ def save_contigs(tupple, file_name):
     """Sort un fichier avec la liste tupple"""
     file = open(file_name, 'w+')
     for i in range(len(tupple)):
-        file.write('>Contig numero ' + str(i+1) + ' len=' + str(tupple[i][1]) +
-                   '\n' + str(fill(tupple[i][0])) + '\n')
+        file.write('>contig_' + str(i) + ' len=' + str(tupple[i][1]) + '\n' + str(fill(tupple[i][0])) + '\n')
+    file.close()
 
 
 def std(list_val):
@@ -129,29 +130,67 @@ def select_best_path(graph, path, path_len, path_wei,
     Function return clean graph
     By default delete entry or sink node is set as False"""
     new_G = graph
+    random.seed(9001)
     best_wei_indice = []
     for i,e in enumerate(path_wei):
         if e == max(path_wei):
             best_wei_indice.append(i)
-    print(best_wei_indice)
+    best_len_indice = []
+    for i,e in enumerate(path_len):
+        if e == max(path_len):
+            best_len_indice.append(i)
     if len(best_wei_indice) == 1:
-         
-        #if delete_entry_node == True:
-            #new_G.remove_node(path[i][0])
-        #if delete_sink_node == True:
-            #new_G.remove_node(path[i][-1])
+        path.remove(path[best_wei_indice[0]])
+        new_G = remove_paths(new_G, path, delete_entry_node, delete_sink_node)
+    elif len(best_len_indice) == 1:
+        path.remove(path[best_len_indice[0]])
+        new_G = remove_paths(new_G, path, delete_entry_node, delete_sink_node)
+    else:
+        rand = random.randint(0,len(path)-1)
+        path.remove(path[rand])
+        new_G = remove_paths(new_G, path, delete_entry_node, delete_sink_node)
     return new_G
-
-
-graph_1 = nx.DiGraph()
-graph_1.add_edges_from([(1, 2), (3, 2), (2, 4), (4, 5), (5, 6), (5, 7)])
-g = select_best_path(graph_1, [[1,2], [3,2]], [1, 1], [5, 10,10,10], delete_entry_node=True)
-assert (1,2) not in g.edges()
-
-
+    
 
 def solve_bubble(graph, ancestor_node, descendant_node):
     """Take graph, ancestor node, descendant node and return clean graph"""
+    new_G = graph
+    return new_G
+
+
+
+
+graph_1 = nx.DiGraph()
+graph_1.add_weighted_edges_from([(1, 2, 10), (3, 2, 10), (2, 4, 15), 
+                                     (4, 5, 15), (2, 10,10), (10, 5,10),
+                                     (2, 8, 3), (8, 9, 3), (9, 5, 3),
+                                     (5, 6, 10), (5, 7, 10)])
+graph_1 = solve_bubble(graph_1, 2, 5)
+assert (2,8) not in graph_1.edges()
+assert (8,9) not in graph_1.edges()
+assert (9,5) not in graph_1.edges()
+assert (2,10) not in graph_1.edges()
+assert (10, 5) not in graph_1.edges()
+assert (2,4) in graph_1.edges()
+assert (4,5) in graph_1.edges()
+assert 8 not in graph_1.nodes()
+assert 9 not in graph_1.nodes()
+assert 10 not in graph_1.nodes()
+assert 2 in graph_1.nodes()
+assert 5 in graph_1.nodes()
+graph_2 = nx.DiGraph()
+graph_2.add_weighted_edges_from([(1, 2, 10), (3, 2, 10), (2, 4, 10), 
+                                     (4, 5, 10), (2, 10,10), (10, 5,10),
+                                     (2, 8, 10), (8, 9, 10), (9, 5, 10),
+                                     (5, 6, 10), (5, 7, 10)])
+graph_2 = solve_bubble(graph_2, 2, 5)
+assert (2,4) not in graph_2.edges()
+assert (4,5) not in graph_2.edges()
+assert (2,10) not in graph_1.edges()
+assert (10, 5) not in graph_1.edges()
+assert (2,8) in graph_2.edges()
+assert (8,9) in graph_2.edges()
+assert (9,5) in graph_2.edges()
 
 
 def simplify_bubbles(graph):
@@ -176,11 +215,6 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     #config_file = args.o
-    
-    
-    #fastq_file = 'eva71_hundred_reads.fq'
-    #kmer_size = 21
-    
     
     graph = build_graph(build_kmer_dict(fastq_file, kmer_size))
     tupple = get_contigs(graph, get_starting_nodes(graph), get_sink_nodes(graph))

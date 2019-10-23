@@ -155,42 +155,16 @@ def select_best_path(graph, path, path_len, path_wei,
 def solve_bubble(graph, ancestor_node, descendant_node):
     """Take graph, ancestor node, descendant node and return clean graph"""
     new_G = graph
+    all_path = nx.all_simple_paths(graph, ancestor_node, descendant_node)
+    all_path = list(all_path)
+    weigth = []
+    for i in range(len(list(all_path))):
+        weigth.append(path_average_weight(new_G, all_path[i]))
+    length = []
+    for i in range(len(list(all_path))):
+        length.append(len(all_path[i]))
+    new_G = select_best_path(new_G, all_path, length, weigth)
     return new_G
-
-
-
-
-graph_1 = nx.DiGraph()
-graph_1.add_weighted_edges_from([(1, 2, 10), (3, 2, 10), (2, 4, 15), 
-                                     (4, 5, 15), (2, 10,10), (10, 5,10),
-                                     (2, 8, 3), (8, 9, 3), (9, 5, 3),
-                                     (5, 6, 10), (5, 7, 10)])
-graph_1 = solve_bubble(graph_1, 2, 5)
-assert (2,8) not in graph_1.edges()
-assert (8,9) not in graph_1.edges()
-assert (9,5) not in graph_1.edges()
-assert (2,10) not in graph_1.edges()
-assert (10, 5) not in graph_1.edges()
-assert (2,4) in graph_1.edges()
-assert (4,5) in graph_1.edges()
-assert 8 not in graph_1.nodes()
-assert 9 not in graph_1.nodes()
-assert 10 not in graph_1.nodes()
-assert 2 in graph_1.nodes()
-assert 5 in graph_1.nodes()
-graph_2 = nx.DiGraph()
-graph_2.add_weighted_edges_from([(1, 2, 10), (3, 2, 10), (2, 4, 10), 
-                                     (4, 5, 10), (2, 10,10), (10, 5,10),
-                                     (2, 8, 10), (8, 9, 10), (9, 5, 10),
-                                     (5, 6, 10), (5, 7, 10)])
-graph_2 = solve_bubble(graph_2, 2, 5)
-assert (2,4) not in graph_2.edges()
-assert (4,5) not in graph_2.edges()
-assert (2,10) not in graph_1.edges()
-assert (10, 5) not in graph_1.edges()
-assert (2,8) in graph_2.edges()
-assert (8,9) in graph_2.edges()
-assert (9,5) in graph_2.edges()
 
 
 def simplify_bubbles(graph):

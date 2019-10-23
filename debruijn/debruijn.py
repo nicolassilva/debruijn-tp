@@ -169,14 +169,51 @@ def solve_bubble(graph, ancestor_node, descendant_node):
 
 def simplify_bubbles(graph):
     """Take graph and return it without bubble"""
+    new_G = graph
+    all_path = []
+    bubble = []
+    for node in new_G.nodes():
+        pred = list(graph.predecessors(node))
+        if len(pred) > 1:
+            anc = nx.lowest_common_ancestor(new_G,pred[0],pred[1])
+            bubble.append([anc,node])
+    for i in range(len(bubble)):
+        new_G = solve_bubble(new_G, bubble[i][0], bubble[i][1])
+    return new_G
 
 
 def solve_entry_tips(graph, entry_node):
     """Take graph and entry nodes and return graph whithout entry indesirable path"""
 
+'''graph_1 = nx.DiGraph()
+graph_1.add_weighted_edges_from([(1, 2, 10), (3, 2, 2), (2, 4, 15), (4, 5, 15)])
+graph_1 = solve_entry_tips(graph_1, [1, 3])  
+assert (3, 2) not in graph_1.edges()
+assert (1, 2) in graph_1.edges()
+graph_2 = nx.DiGraph()
+graph_2.add_weighted_edges_from([(1, 2, 2), (6, 3, 2), (3, 2, 2),
+                                     (2, 4, 15), (4, 5, 15)])
+graph_2 = solve_entry_tips(graph_2, [1, 6])  
+assert (1, 2) not in graph_2.edges()
+assert (6, 3) in graph_2.edges()
+assert (3, 2) in graph_2.edges()'''
+
 
 def solve_out_tips(graph, sink_node):
     """Take graph and sink nodes and return graph whithout entry indesirable path"""
+
+
+
+'''graph_1 = nx.DiGraph()
+graph_1.add_weighted_edges_from([(1, 2, 15), (2, 3, 15), (4, 5, 15), (4, 6, 2)])
+graph_1 = solve_out_tips(graph_1, [5, 6])  
+assert (4, 6) not in graph_1.edges()
+assert (4, 5) in graph_1.edges()  
+graph_2 = nx.DiGraph()
+graph_2.add_weighted_edges_from([(1, 2, 15), (2, 3, 15), (4, 5, 2), (4, 6, 2) , (6, 7, 2)])
+graph_2 = solve_out_tips(graph_2, [5, 7])  
+assert (4, 5) not in graph_2.edges()
+assert (6, 7) in graph_2.edges()'''
 
 
 def main():

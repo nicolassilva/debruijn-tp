@@ -1,37 +1,8 @@
 """Find Kmer in sequence"""
-import argparse
-import networkx as nx
 import os
-
-def std():
-    pass
-
-def path_average_weight():
-    pass
-
-
-def remove_paths():
-    pass
-
-
-def select_best_path():
-    pass
-
-
-def solve_bubble():
-    pass
-
-
-def simplify_bubbles():
-    pass
-
-
-def solve_entry_tips():
-    pass
-
-
-def solve_out_tips():
-    pass
+import argparse
+import statistics as st
+import networkx as nx
 
 
 def read_fastq(fastq_file):
@@ -67,8 +38,8 @@ def build_kmer_dict(fastq_file, kmer_size):
 def build_graph(kmer_dict):
     """Build tree of kmer prefixes and suffixes"""
     graph = nx.DiGraph()
-    for kmer,val in kmer_dict.items():
-        graph.add_edge(kmer[:-1],kmer[1:], weight=val)
+    for kmer, val in kmer_dict.items():
+        graph.add_edge(kmer[:-1], kmer[1:], weight=val)
     return graph
 
 
@@ -76,7 +47,7 @@ def get_starting_nodes(graph):
     """Prend un graphe et retourne une liste de noeuds d'entrés"""
     entres = []
     for node in graph.nodes:
-        if len(list(graph.predecessors(node)))==False:
+        if len(list(graph.predecessors(node))) == 0:
             entres.append(node)
     return entres
 
@@ -85,27 +56,27 @@ def get_sink_nodes(graph):
     """Prend un graphe et retourne une liste de noeuds de sortis"""
     sortis = []
     for node in graph.nodes:
-        if len(list(graph.successors(node)))==False:
+        if len(list(graph.successors(node))) == 0:
             sortis.append(node)
     return sortis
 
 
-def get_contigs(graph,entres,sortis):
+def get_contigs(graph, entres, sortis):
     """Retourne liste de tuple(contig, taille du contig)"""
     all_paths = []
     for node in entres:
         for node2 in sortis:
-            path = list(nx.all_simple_paths(graph,node,node2))
+            path = list(nx.all_simple_paths(graph, node, node2))
             if len(path) > 0:
                 all_paths.append(path)
     tupple = []
     for i in range(len(all_paths)):
         for k in range(len(all_paths[i])):
             contig = str(all_paths[i][k][0])
-            for j in range(1,len(all_paths[i][k])):
+            for j in range(1, len(all_paths[i][k])):
                 string = str(all_paths[i][k][j][-1])
                 contig += string[-1]
-            tupple.append([contig,len(contig)])
+            tupple.append([contig, len(contig)])
     return tupple
 
 
@@ -114,11 +85,85 @@ def fill(text, width=80):
     return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 
-def save_contigs(tupple,file_name):
+def save_contigs(tupple, file_name):
     """Sort un fichier avec la liste tupple"""
-    file = open("../data/"+file_name,'w+')
+    file = open(file_name, 'w+')
     for i in range(len(tupple)):
-        file.write('>Contig numero ' + str(i) + ' len=' + str(tupple[i][1]) + '\n' + str(fill(tupple[i][0])) + '\n')
+        file.write('>Contig numero ' + str(i+1) + ' len=' + str(tupple[i][1]) +
+                   '\n' + str(fill(tupple[i][0])) + '\n')
+
+
+def std(list_val):
+    """Take list of values and return standard deviation"""
+    return st.stdev(list_val)
+
+
+def path_average_weight(graph, path):
+    """Take a graph and a path and return average weigth"""
+    new_G = graph.subgraph(path)
+    wei = []
+    for arretes in new_G.edges(data=True):
+        wei.append(arretes[2]['weight'])
+    mean_wei = st.mean(wei)
+    return mean_wei
+
+
+def remove_paths(graph, path, delete_entry_node, delete_sink_node):
+    """Take graph and path and remove nodes
+    delete_entry_node pour indiquer si les noeuds d’entrée seront supprimés
+    et delete_sink_node pour indiquer si les noeuds de sortie seront supprimés
+    Return clean graph"""
+    new_G = graph
+    for i in range(len(path)):
+        new_G.remove_nodes_from(path[i][1:-1])
+        if delete_entry_node == True:
+            new_G.remove_node(path[i][0])
+        if delete_sink_node == True:
+            new_G.remove_node(path[i][-1])
+    return new_G
+
+
+def select_best_path(graph, path, path_len, path_wei,
+                     delete_entry_node=False, delete_sink_node=False):
+    """Take graph, path, path length, path weigth and delete entry or sink node
+    Function return clean graph
+    By default delete entry or sink node is set as False"""
+    new_G = graph
+    best_wei_indice = []
+    for i,e in enumerate(path_wei):
+        if e == max(path_wei):
+            best_wei_indice.append(i)
+    print(best_wei_indice)
+    if len(best_wei_indice) == 1:
+         
+        #if delete_entry_node == True:
+            #new_G.remove_node(path[i][0])
+        #if delete_sink_node == True:
+            #new_G.remove_node(path[i][-1])
+    return new_G
+
+
+graph_1 = nx.DiGraph()
+graph_1.add_edges_from([(1, 2), (3, 2), (2, 4), (4, 5), (5, 6), (5, 7)])
+g = select_best_path(graph_1, [[1,2], [3,2]], [1, 1], [5, 10,10,10], delete_entry_node=True)
+assert (1,2) not in g.edges()
+
+
+
+def solve_bubble(graph, ancestor_node, descendant_node):
+    """Take graph, ancestor node, descendant node and return clean graph"""
+
+
+def simplify_bubbles(graph):
+    """Take graph and return it without bubble"""
+
+
+def solve_entry_tips(graph, entry_node):
+    """Take graph and entry nodes and return graph whithout entry indesirable path"""
+
+
+def solve_out_tips(graph, sink_node):
+    """Take graph and sink nodes and return graph whithout entry indesirable path"""
 
 
 def main():
@@ -131,10 +176,16 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     #config_file = args.o
+    
+    
+    #fastq_file = 'eva71_hundred_reads.fq'
+    #kmer_size = 21
+    
+    
     graph = build_graph(build_kmer_dict(fastq_file, kmer_size))
     tupple = get_contigs(graph, get_starting_nodes(graph), get_sink_nodes(graph))
-    save_contigs(tupple,'eva71_hundred_reads.fq.out')
-    
+    save_contigs(tupple, 'eva71_hundred_reads.fq.out')
+
 
 if __name__ == '__main__':
     main()

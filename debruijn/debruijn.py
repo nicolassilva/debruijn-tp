@@ -164,9 +164,6 @@ def solve_bubble(graph, ancestor_node, descendant_node):
     length = []
     for i in range(len(list(all_path))):
         length.append(len(all_path[i]))
-    print(all_path)
-    print(length)
-    print(weigth)
     new_g = select_best_path(new_g, all_path, length, weigth)
     return new_g
 
@@ -188,15 +185,18 @@ def simplify_bubbles(graph):
 def solve_entry_tips(graph, entry_node):
     """Take graph and entry nodes and return graph whithout entry indesirable path"""
     new_g = graph
+    des = []
     for node in new_g.nodes():
         pred = list(new_g.predecessors(node))
         if len(pred) > 1:
-            des = node
+            des.append(node)
+    if len(des) == 0:
+        return new_g
     path = []
     weight = []
     length = []
     for i in range(len(entry_node)):
-        path.append(list(nx.all_simple_paths(new_g, entry_node[i], des)))
+        path.append(list(nx.all_simple_paths(new_g, entry_node[i], des[0])))
         path[i] = path[i][0]
         weight.append(path_average_weight(new_g, path[i]))
         length.append(len(path[i]))
@@ -232,9 +232,14 @@ def main():
     fastq_file = args.i
     kmer_size = args.k
     contig_file = args.o
+    
     graph = build_graph(build_kmer_dict(fastq_file, kmer_size))
+    graph = simplify_bubbles(graph)
+    graph = solve_entry_tips(graph, get_starting_nodes(graph))
+    graph = solve_out_tips(graph, get_sink_nodes(graph))
     tupple = get_contigs(graph, get_starting_nodes(graph), get_sink_nodes(graph))
     save_contigs(tupple, contig_file)
+    print("Done")
 
 
 if __name__ == '__main__':
